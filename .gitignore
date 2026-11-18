@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+node_modules/
+.env
+.env.*
+*.mp4
+*.mov
+*.wav
+*.png
+*.jpg
+*.jpeg
+saida/
+out/
+frames/

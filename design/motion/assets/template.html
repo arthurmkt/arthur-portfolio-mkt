@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion — CLIENTE — PEÇA</title>
+<!-- Fontes: Google Fonts aqui, ou @font-face com o arquivo da marca na mesma pasta -->
+<!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;800&display=block" rel="stylesheet"> -->
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; background: #111; color: #ddd; font: 13px/1.4 system-ui, sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { display: block; max-width: 100%; max-height: 76vh; height: auto; width: auto; box-shadow: 0 0 0 1px #333; }
+  #bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; width: min(920px, 100%); }
+  #scrub { flex: 1 1 240px; }
+  #scene { font-weight: 600; color: #fff; }
+  button { font: inherit; padding: 4px 12px; }
+  body.render { background: #000; }
+  body.render #wrap { padding: 0; }
+  body.render #bar { display: none; }
+  body.render canvas { max-width: none; max-height: none; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+  <div id="bar">
+    <button id="play">▶ play</button>
+    <input id="scrub" type="range" min="0" step="0.001" value="0">
+    <span id="time">0,00s</span>
+    <span id="scene"></span>
+    <label><input type="checkbox" id="safe"> área segura</label>
+  </div>
+</div>
+<script>
+// ============================================================
+// 1. CONFIGURAÇÃO — formato e kit da marca
+// ============================================================
+const CFG = {
+  W: 1080, H: 1920, FPS: 30, DUR: 15,         // formato
+  SEED: 7,                                      // semente fixa: o aleatório se repete igual
+  FONTS: ['800 100px "Inter"', '400 40px "Inter"'],  // tudo que for usado em ctx.font, para esperar carregar
+  ASSETS: { /* logo: 'logo.svg', foto1: 'foto1.jpg' */ },
+  // área segura do 9:16 (px no quadro 1080×1920). Em 16:9/1:1, zere.
+  SAFE: { top: 250, bottom: 350, left: 60, right: 120 },
+};
+const BRAND = {
+  bg: '#050505', ink: '#FFFFFF', accent: '#E50914', highlight: '#FFDD00',
+  title: '"Inter"', text: '"Inter"',
+};
+
+// ============================================================
+// 2. BIBLIOTECA — tudo é função do tempo
+// ============================================================
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const prog = (t, a, b) => clamp((t - a) / (b - a));          // 0→1 entre os instantes a e b
+const ease = {
+  linear: x => x,
+  inOut: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  out: x => 1 - Math.pow(1 - x, 3),
+  in: x => x * x * x,
+  back: (x, s = 1.70158) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2),   // overshoot
+  bounce: x => { const n = 7.5625, d = 2.75;
+    if (x < 1 / d) return n * x * x; if (x < 2 / d) return n * (x -= 1.5 / d) * x + .75;
+    if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + .9375; return n * (x -= 2.625 / d) * x + .984375; },
+};
+// stagger: progresso do elemento i, com atraso d entre elementos e duração dur de cada um
+const stag = (lt, i, d, dur, start = 0) => prog(lt, start + i * d, start + i * d + dur);
+// aleatório com semente (mulberry32)
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const fmtBR = (n, dec = 0) => n.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+function text(ctx, s, x, y, { font, color = BRAND.ink, align = 'center', base = 'middle', alpha = 1 } = {}) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color;
+  ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y); ctx.restore();
+}
+
+// ============================================================
+// 3. CENAS — uma ideia por cena, 2 a 4 s, com entrada e saída
+//    draw(ctx, lt, t): lt = tempo local da cena, t = tempo global
+// ============================================================
+const SCENES = [
+  { name: 'Cena 1 — exemplo', start: 0, end: 3, draw(ctx, lt) {
+      const p = ease.back(prog(lt, 0, .6));
+      text(ctx, 'TROQUE ESTA CENA', CFG.W / 2, CFG.H / 2, { font: `800 ${Math.round(lerp(40, 100, p))}px ${BRAND.title}`, alpha: prog(lt, 0, .3) });
+  } },
+];
+
+// ============================================================
+// 4. MOTOR — não precisa mexer daqui pra baixo
+// ============================================================
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+cv.width = CFG.W; cv.height = CFG.H;
+const IMG = {};
+let showSafe = false;
+function sceneAt(t) { return SCENES.filter(s => t >= s.start && (t < s.end || (s.end >= CFG.DUR && t <= s.end))); }
+function render(t) {
+  t = clamp(t, 0, CFG.DUR);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = BRAND.bg; ctx.fillRect(0, 0, CFG.W, CFG.H);
+  for (const s of sceneAt(t)) { ctx.save(); s.draw(ctx, t - s.start, t); ctx.restore(); }
+  if (showSafe) { const S = CFG.SAFE; ctx.save(); ctx.fillStyle = 'rgba(255,0,80,.28)';
+    ctx.fillRect(0, 0, CFG.W, S.top); ctx.fillRect(0, CFG.H - S.bottom, CFG.W, S.bottom);
+    ctx.fillRect(0, 0, S.left, CFG.H); ctx.fillRect(CFG.W - S.right, 0, S.right, CFG.H); ctx.restore(); }
+  return sceneAt(t).map(s => s.name).join(' + ');
+}
+window.CFG = CFG;
+window.__render = t => render(t);
+window.__ready = (async () => {
+  await Promise.all(Object.entries(CFG.ASSETS).map(([k, src]) => new Promise((ok, err) => {
+    const im = new Image(); im.onload = () => { IMG[k] = im; ok(); }; im.onerror = () => err(new Error('asset: ' + src)); im.src = src; })));
+  await Promise.all(CFG.FONTS.map(f => document.fonts.load(f)));
+  await document.fonts.ready;
+  return true;
+})();
+
+// player (só no navegador; no render quadro a quadro fica escondido)
+if (location.search.includes('render')) document.body.classList.add('render');
+const scrub = document.getElementById('scrub'), playB = document.getElementById('play');
+const timeL = document.getElementById('time'), sceneL = document.getElementById('scene');
+scrub.max = CFG.DUR;
+let T = 0, playing = false, last = 0;
+function show(t) { T = t; const n = render(t); scrub.value = t; timeL.textContent = fmtBR(t, 2) + 's'; sceneL.textContent = n; }
+function loop(now) { if (playing) { T += (now - last) / 1000; if (T >= CFG.DUR) T = 0; show(T); } last = now; requestAnimationFrame(loop); }
+playB.onclick = () => { playing = !playing; playB.textContent = playing ? '❚❚ pausa' : '▶ play'; };
+scrub.oninput = () => { playing = false; playB.textContent = '▶ play'; show(+scrub.value); };
+document.getElementById('safe').onchange = e => { showSafe = e.target.checked; show(T); };
+addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); playB.click(); }
+  if (e.code === 'ArrowRight') show(clamp(T + 1 / CFG.FPS, 0, CFG.DUR));
+  if (e.code === 'ArrowLeft') show(clamp(T - 1 / CFG.FPS, 0, CFG.DUR));
+});
+window.__ready.then(() => { show(0); requestAnimationFrame(n => { last = n; loop(n); }); });
+</script>
+</body>
+</html>

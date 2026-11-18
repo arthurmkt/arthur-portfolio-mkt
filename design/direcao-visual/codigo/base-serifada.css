@@ -1,0 +1,136 @@
+/* Extraído de uma página de lista de espera de app, out/2026.
+   Referência de: serifada de display + sans de texto, paleta quente nomeada,
+   coluna estreita mobile-first, produto real (card do app) como herói. */
+
+  :root{
+    --tinta:#0C0A09;
+    --brasa:#17120E;
+    --brasa2:#1F1812;
+    --vinho:#3A1620;
+    --ouro:#E0B354;
+    --ouro-fosco:rgba(224,179,84,.16);
+    --marfim:#F5F0E6;
+    --suave:rgba(245,240,230,.68);
+    --fraco:rgba(245,240,230,.44);
+    --linha:rgba(245,240,230,.13);
+    --verde:#4FCE93;
+    --display:"Bodoni Moda",Georgia,"Times New Roman",serif;
+    --corpo:"Karla","Helvetica Neue",Arial,sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--tinta);color:var(--marfim);
+    font-family:var(--corpo);font-size:17px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .env{max-width:560px;margin:0 auto;padding:0 22px}
+
+  .rotulo{
+    font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ouro);
+  }
+  h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+  h1{font-size:clamp(38px,10vw,52px);line-height:1.04;letter-spacing:-.015em}
+  h2{font-size:clamp(27px,7vw,34px);line-height:1.12;letter-spacing:-.01em}
+  h3{font-size:20px;line-height:1.25}
+  p{margin:0;color:var(--suave)}
+  em{font-style:italic;color:var(--marfim)}
+
+  /* ---------- herói ---------- */
+  .topo{padding:34px 0 8px;display:flex;justify-content:center}
+  .marca{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .marca span{color:var(--ouro)}
+
+  .heroi{padding:36px 0 8px;display:flex;flex-direction:column;gap:20px}
+  .heroi .sub{font-size:18px;line-height:1.5}
+
+  /* ---------- o card do app, de verdade ---------- */
+  .palco{
+    margin:6px auto 0;width:100%;max-width:330px;aspect-ratio:330/470;
+    border-radius:26px;overflow:hidden;position:relative;
+    background:linear-gradient(150deg,#2C2118,#0F0C0A);
+    border:1px solid var(--linha);
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.9);
+  }
+  .palco img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .palco .veu{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,.55) 66%,rgba(0,0,0,.94) 100%);
+  }
+  .tracos{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;gap:4px}
+  .tracos i{width:17px;height:2.5px;border-radius:2px;background:rgba(255,255,255,.3)}
+  .tracos i:first-child{background:#fff}
+  .selos{position:absolute;top:26px;left:14px;display:flex;gap:6px}
+  .chip{
+    display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;
+    font-size:11px;font-weight:700;
+  }
+  .chip.ok{background:rgba(79,206,147,.94);color:#052018}
+  .chip.on{background:rgba(0,0,0,.55);color:#fff;font-weight:600}
+  .chip.on b{width:6px;height:6px;border-radius:50%;background:var(--verde);display:inline-block}
+  .ficha{position:absolute;left:18px;right:18px;bottom:18px;display:flex;flex-direction:column;gap:7px}
+  .ficha .nome{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.05}
+  .ficha .nome small{font-weight:300;font-size:28px}
+  .ficha .fatos{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:14px;color:rgba(255,255,255,.88)}
+  .ficha .versiculo{font-size:13.5px;color:rgba(255,255,255,.76);border-left:2px solid var(--ouro);padding-left:10px;margin-top:3px}
+  .ficha .preparado{
+    align-self:flex-start;display:inline-flex;align-items:center;gap:5px;
+    border:1px solid rgba(224,179,84,.5);background:rgba(0,0,0,.45);
+    border-radius:99px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--ouro);
+  }
+
+  /* ---------- chamada ---------- */
+  .acao{display:flex;flex-direction:column;gap:10px;padding:26px 0 6px}
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    height:56px;border-radius:99px;text-decoration:none;
+    font-weight:700;font-size:17px;letter-spacing:-.01em;
+    transition:transform .15s ease,filter .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+  .btn:focus-visible{outline:2px solid var(--ouro);outline-offset:3px}
+  .btn.cheio{background:var(--ouro);color:#181206}
+  .btn.vazio{border:1px solid var(--linha);color:var(--marfim)}
+  .miudo{font-size:13px;color:var(--fraco);text-align:center}
+
+  /* ---------- seções ---------- */
+  section{padding:52px 0}
+  .faixa{background:var(--brasa);border-top:1px solid var(--linha);border-bottom:1px solid var(--linha)}
+  .faixa-vinho{background:linear-gradient(170deg,var(--vinho),#1A0B10)}
+  .cab{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
+
+  .pilares{display:flex;flex-direction:column;gap:16px}
+  .pilar{
+    background:var(--brasa2);border:1px solid var(--linha);border-radius:18px;
+    padding:20px;display:flex;flex-direction:column;gap:8px;
+  }
+  .faixa .pilar{background:var(--tinta)}
+  .pilar .n{font-family:var(--display);font-size:15px;color:var(--ouro)}
+  .pilar p{font-size:15px;line-height:1.5}
+
+  .listas{display:flex;flex-direction:column;gap:26px}
+  .lista h3{margin-bottom:12px}
+  .lista ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .lista li{display:flex;gap:11px;align-items:flex-start;font-size:15.5px;color:var(--suave)}
+  .lista li b{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;margin-top:2px}
+  .sim li b{background:rgba(79,206,147,.16);color:var(--verde)}
+  .nao li b{background:rgba(224,179,84,.14);color:var(--ouro)}
+
+  .citacao{
+    font-family:var(--display);font-size:23px;line-height:1.4;font-style:italic;
+    color:var(--marfim);text-wrap:balance;
+  }
+  .citacao + .ref{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro);margin-top:14px}
+
+  .vagas{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+  .contagem{
+    font-family:var(--display);font-size:44px;line-height:1;color:var(--ouro);
+    font-variant-numeric:tabular-nums;
+  }
+
+  footer{padding:40px 0 54px;border-top:1px solid var(--linha);display:flex;flex-direction:column;gap:10px}
+  footer p{font-size:13px;color:var(--fraco)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
